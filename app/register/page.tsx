@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
@@ -28,13 +27,28 @@ export default function Register() {
     event.preventDefault();
 
     try {
-      const response = await api.post("/user/register", form);
+      const res = await fetch("/api/user/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-      console.log("Registration successful:", response.data);
+      const data = await res.json();
 
-      router.push("/login");
-    } catch (error: any) {
-      setMessage(error.response?.data?.message || "Registration failed");
+      if (!res.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      setMessage("Registration successful!");
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 1000);
+
+    } catch (err: any) {
+      setMessage(err.message);
     }
   };
 
@@ -60,7 +74,7 @@ export default function Register() {
             value={form.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
           />
 
           <input
@@ -70,7 +84,7 @@ export default function Register() {
             value={form.username}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
           />
 
           <input
@@ -80,7 +94,7 @@ export default function Register() {
             value={form.phone}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
           />
 
           <input
@@ -90,7 +104,7 @@ export default function Register() {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30 transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30"
           />
 
           <input
@@ -100,19 +114,19 @@ export default function Register() {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30 transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30"
           />
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl font-semibold text-slate-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 transition-all active:scale-95 shadow-lg shadow-purple-500/20"
+            className="w-full py-3 rounded-xl font-semibold text-slate-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 transition active:scale-95"
           >
             Sign Up
           </button>
         </form>
 
         {message && (
-          <div className="mt-6 text-sm text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2">
+          <div className="mt-6 text-sm text-center text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg py-2">
             {message}
           </div>
         )}
@@ -120,8 +134,8 @@ export default function Register() {
         <div className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{" "}
           <button
-            onClick={() => router.push("/")}
-            className="text-cyan-400 hover:text-cyan-300 font-semibold transition"
+            onClick={() => router.push("/login")}
+            className="text-cyan-400 hover:text-cyan-300 font-semibold"
           >
             Sign in
           </button>
