@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 
 export default function Login() {
   const router = useRouter();
@@ -10,20 +9,38 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
-      const response = await api.post("/auth/login", {
-        email,
-        password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      localStorage.setItem("token", response.data.payload?.token);
-      router.push("/homepage");
-    } catch (error: any) {
-      setMessage(error.response?.data?.message || "Login failed");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      localStorage.setItem("token", data.payload?.token);
+
+      setMessage("Login successful!");
+      setIsError(false);
+
+      setTimeout(() => {
+        router.push("/shop");
+      }, 1000);
+
+    } catch (err: any) {
+      setMessage(err.message || "Login failed");
+      setIsError(true);
     }
   };
 
@@ -41,38 +58,40 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          <div className="relative">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Email"
-              className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition"
-            />
-          </div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="Email"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
+          />
 
-          <div className="relative">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Password"
-              className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30 transition"
-            />
-          </div>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Password"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30"
+          />
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl font-semibold text-slate-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 transition-all active:scale-95 shadow-lg shadow-cyan-500/20"
+            className="w-full py-3 rounded-xl font-semibold text-slate-900 bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-300 hover:to-purple-300 transition"
           >
             Sign In
           </button>
         </form>
 
         {message && (
-          <div className="mt-6 text-sm text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2">
+          <div
+            className={`mt-6 text-sm text-center rounded-lg py-2 border ${
+              isError
+                ? "text-red-400 bg-red-500/10 border-red-500/20"
+                : "text-green-400 bg-green-500/10 border-green-500/20"
+            }`}
+          >
             {message}
           </div>
         )}
@@ -81,7 +100,7 @@ export default function Login() {
           Don’t have an account?{" "}
           <button
             onClick={() => router.push("/register")}
-            className="text-cyan-400 hover:text-cyan-300 font-semibold transition"
+            className="text-cyan-400 hover:text-cyan-300 font-semibold"
           >
             Register
           </button>

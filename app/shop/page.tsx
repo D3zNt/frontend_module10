@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { Navbar } from "../../components/navbar";
+import { addToCart } from "@/lib/cart";
 
 interface Item {
   id: number;
@@ -21,7 +22,6 @@ export default function ShopPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
       router.push("/");
     }
@@ -34,11 +34,18 @@ export default function ShopPage() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/items");
-      setItems(res.data.payload);
-    } catch (err) {
+
+      const res = await fetch("/api/items");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch items");
+      }
+
+      setItems(data.payload);
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to fetch items");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -53,7 +60,10 @@ export default function ShopPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-10">
+    <>
+    <Navbar />
+
+    <div className="min-h-screen pt-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-10">
       
       <div className="absolute w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl top-10 left-10"></div>
       <div className="absolute w-72 h-72 bg-purple-500/20 rounded-full blur-3xl bottom-10 right-10"></div>
@@ -76,13 +86,12 @@ export default function ShopPage() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            
             {items.map((item) => (
               <div
                 key={item.id}
-                className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:shadow-cyan-500/10 transition group"
+                className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:shadow-cyan-500/10 transition"
               >
-                <h2 className="text-xl font-semibold text-white mb-2 group-hover:text-cyan-400 transition">
+                <h2 className="text-xl font-semibold text-white mb-2">
                   {item.name}
                 </h2>
 
@@ -98,15 +107,21 @@ export default function ShopPage() {
                   Added {new Date(item.created_at).toLocaleDateString()}
                 </p>
 
-                <button className="w-full py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-purple-400 text-slate-900 font-semibold hover:from-cyan-300 hover:to-purple-300 transition active:scale-95">
+                <button
+                  onClick={() => {
+                    addToCart(item);
+                    alert("Added to cart!");
+                  }}
+                  className="w-full py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-purple-400 text-slate-900 font-semibold hover:from-cyan-300 hover:to-purple-300 transition"
+                  >
                   Buy
                 </button>
               </div>
             ))}
-
           </div>
         )}
       </div>
     </div>
+  </>
   );
 }

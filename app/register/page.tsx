@@ -48,7 +48,7 @@ export default function Register() {
 
 
       setTimeout(() => {
-        router.push("/login");
+        router.push("/");
       }, 1000);
 
     } catch (err: any) {
