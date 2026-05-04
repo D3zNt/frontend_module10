@@ -15,6 +15,7 @@ export default function Register() {
   });
 
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -41,15 +42,25 @@ export default function Register() {
         throw new Error(data.message || "Registration failed");
       }
 
+
       setMessage("Registration successful!");
+      setIsError(false);
+
 
       setTimeout(() => {
         router.push("/login");
       }, 1000);
 
     } catch (err: any) {
-      setMessage(err.message);
+
+      setMessage(err.message || "Something went wrong");
+      setIsError(true);
     }
+
+
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
   };
 
   return (
@@ -126,7 +137,13 @@ export default function Register() {
         </form>
 
         {message && (
-          <div className="mt-6 text-sm text-center text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg py-2">
+          <div
+            className={`mt-6 text-sm text-center rounded-lg py-2 border ${
+              isError
+                ? "text-red-400 bg-red-500/10 border-red-500/20"
+                : "text-green-400 bg-green-500/10 border-green-500/20"
+            }`}
+          >
             {message}
           </div>
         )}
@@ -134,7 +151,7 @@ export default function Register() {
         <div className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{" "}
           <button
-            onClick={() => router.push("/login")}
+            onClick={() => router.push("/")}
             className="text-cyan-400 hover:text-cyan-300 font-semibold"
           >
             Sign in
